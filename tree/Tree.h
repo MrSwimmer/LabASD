@@ -40,25 +40,27 @@ class Tree {
         }
 
         Iterator *first() {
-            if(tree->isEmpty())
+            if (tree->isEmpty())
                 throw EMPTY_TREE_ERR;
-            //do it
+            down(tree->root);
+            return this;
         }
 
         Iterator *last() {
-            if(tree->isEmpty())
+            if (tree->isEmpty())
                 throw EMPTY_TREE_ERR;
-            //do it
+            up(tree->root);
+            return this;
         }
 
         Iterator &operator--(int) {
-            if(tree->isEmpty()) throw EMPTY_TREE_ERR;
+            if (tree->isEmpty()) throw EMPTY_TREE_ERR;
             //do it
             return *this;
         };
 
         Iterator &operator++(int) {
-            if(tree->isEmpty()) throw EMPTY_TREE_ERR;
+            if (tree->isEmpty()) throw EMPTY_TREE_ERR;
             //do it
             return *this;
         };
@@ -67,15 +69,30 @@ class Tree {
             return !this->node == NULL;
         }
 
-        T read(){
-            if(tree->isEmpty()) throw EMPTY_TREE_ERR;
+        T read() {
+            if (tree->isEmpty()) throw EMPTY_TREE_ERR;
             return node->data;
         }
 
-        void write(T data){
-            if(tree->isEmpty()) throw EMPTY_TREE_ERR;
+        void write(T data) {
+            if (tree->isEmpty()) throw EMPTY_TREE_ERR;
             node->data = data;
         }
+
+        void down(Node *node) {
+            if (node->left != NULL) {
+                this->node = node;
+                down(node->left);
+            }
+        }
+
+        void up(Node *node) {
+            if (node->right != NULL) {
+                this->node = node;
+                up(node->right);
+            }
+        }
+
     };
 
 public:
