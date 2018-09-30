@@ -30,6 +30,34 @@ class Tree {
         }
     };
 
+public:
+
+    void print() {
+        printNode(root);
+    }
+
+    void add(T data) {
+        addNode(root, data);
+    }
+
+    bool isEmpty() {
+        return root == NULL;
+    }
+
+    Node *get(T data) {
+
+    }
+
+    int size() {
+        count = 0;
+        printNode(root);
+        return count;
+    }
+
+    virtual ~Tree() {
+
+    }
+
     class Iterator {
     public:
         Node *node;
@@ -80,48 +108,18 @@ class Tree {
         }
 
         void down(Node *node) {
-            if (node->left != NULL) {
-                this->node = node;
+            this->node = node;
+            if (node->left != NULL)
                 down(node->left);
-            }
         }
 
         void up(Node *node) {
-            if (node->right != NULL) {
-                this->node = node;
+            this->node = node;
+            if (node->right != NULL)
                 up(node->right);
-            }
         }
 
     };
-
-public:
-
-    void print() {
-        printNode(root);
-    }
-
-    void add(T data) {
-        addNode(root, data);
-    }
-
-    bool isEmpty() {
-        return root == NULL;
-    }
-
-    Node *get(T data) {
-
-    }
-
-    int size() {
-        count = 0;
-        printNode(root);
-        return count;
-    }
-
-    virtual ~Tree() {
-
-    }
 
 private:
 

@@ -14,5 +14,10 @@ int main() {
     tree.add(1);
     tree.add(3);
     tree.print();
+    Tree<int>::Iterator i(&tree);
+    i.first();
+    cout << i.node->data;
+    i.last();
+    cout << i.node->data;
     return 0;
 }
