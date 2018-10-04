@@ -45,7 +45,8 @@ public:
     }
 
     Node *get(T data) {
-
+        search(root, data);
+        return searchNode;
     }
 
     int size() {
@@ -55,7 +56,11 @@ public:
     }
 
     virtual ~Tree() {
+        clear(root);
+    }
 
+    void cl() {
+        clear(root);
     }
 
     class Iterator {
@@ -124,6 +129,7 @@ public:
 private:
 
     Node *root = NULL;
+    Node *searchNode;
 
     int count = 0;
 
@@ -157,8 +163,38 @@ private:
         }
     }
 
-    void clear() {
-        //do it
+    void search(Node *node, T data) {
+        if (node == NULL) {
+            throw EMPTY_TREE_ERR;
+        } else {
+            if (data < node->data) {
+                if (node->left != NULL) {
+                    searchNode = node->left;
+                    search(searchNode, data);
+                }
+            }
+            if (data > node->data) {
+                if (node->right != NULL) {
+                    searchNode = node->right;
+                    search(searchNode, data);
+                }
+            }
+            if (data == node->data)
+                searchNode = node;
+        }
+    }
+
+    void clear(Node *node) {
+        if (node == NULL) {
+            cout << "clear done";
+        } else {
+            if (node->left != NULL)
+                clear(node->left);
+            Node *r = node->right;
+            *node = NULL;
+            if (r != NULL)
+                clear(r);
+        }
     }
 };
 
