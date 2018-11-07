@@ -4,23 +4,13 @@
 using namespace std;
 
 int main() {
-    Tree<int> tree;
-    tree.add(10);
-    tree.add(12);
-    tree.add(34);
-    tree.add(33);
-    tree.add(12);
-    tree.add(121);
-    tree.add(1);
-    tree.add(3);
+    Tree<int, int> tree;
+
+    cout<<tree.add( 7, 5)<<endl;
+    cout<<tree.add(7, 4)<<endl;
+    cout<<tree.add( 7, 6)<<endl;
+    cout<<tree.add( 7, 2)<<endl;
+    cout<<tree.add( 7, 9)<<endl;
     tree.print();
-    tree.cl();
-    int size = tree.size();
-    cout << size;
-    /*Tree<int>::Iterator i(&tree);
-    i.first();
-    cout << i.node->data;
-    i.last();
-    cout << i.node->data;*/
     return 0;
 }
