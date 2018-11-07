@@ -1,9 +1,12 @@
 #include <iostream>
 #include <list>
+#include <stack>
 
 #define EMPTY_TREE 0
 #define KEY_DOES_NOT_EXIST 1
 #define ITERATOR_END 2
+
+#define PAIR std::pair< Node *, bool >            //0 - влево, 1 - вправо
 
 using namespace std;
 
@@ -56,6 +59,8 @@ public://методы интерфейса
     void print();//вывод структуры дерева на экран
     int getOperations();//число просмотренных операций узлов дерева
 
+    bool root_insert(Data data, Key key);
+
     Tree();//конструктор по умолчанию
     Tree(Tree<Data, Key> &ttree);//конструктор копирования
     ~Tree();//деструктор
@@ -65,10 +70,12 @@ private:
 public:
     void setRoot(Node *root);
 
-private:
-//указатель на корень
     int length;//длина дерева
     int operations;//число просмотров
+
+private:
+//указатель на корень
+
 
     //вспомогательные методы
     void show(Node *t, int level);//вспомогательный метод распечатки
@@ -89,6 +96,10 @@ private:
     Node *removeSupport(Node *root, Key key, bool &deleted);
 
     Node *del(Node *rightNode, Node *root);
+
+    Node *L(Node *rootNode);
+
+    Node *R(Node *rootNode);
 };
 
 //--------------Методы класса Tree-----------
@@ -336,6 +347,95 @@ template<class Data, class Key>
 void Tree<Data, Key>::setRoot(Tree::Node *root) {
     Tree::root = root;
 }
+
+
+//Вставка в корень
+template<class Data, class Key>
+bool Tree<Data, Key>::root_insert(Data data, Key key) {
+    Node *t = getRoot();
+    if (t == NULL) {
+        length++;
+        setRoot(new Node(data, key));
+        return true;
+    }
+    Node *pred;
+    stack<PAIR > stk;        //stack< std::pair< Node*, bool > > stk
+    stack<PAIR > predstk;    //Стек с предыдущими
+    while (t != NULL) {
+        pred = t;
+        if (key == t->k) {        //Если нельзя вставить
+            while (!stk.empty()) {    //Чистим стек
+                stk.pop();
+                predstk.pop();
+            }
+            return false;            //Выходим
+        }
+        if (key < t->k) {            //Двигаемся налево
+            stk.push(PAIR(t, 1));
+            predstk.push(PAIR(t, 1));
+            t = t->left;
+        } else {                        //Двигаемся направо
+            stk.push(PAIR(t, 0));
+            predstk.push(PAIR(t, 0));
+            t = t->right;
+        }
+    }
+    if (key < pred->k) pred->left = new Node(data, key);
+    else pred->right = new Node(data, key);
+    //Раскрутка стеков
+    predstk.pop();
+    while (!predstk.empty()) {            //Доходим до вершины дерева
+
+        PAIR pr = stk.top();
+        Node *n = pr.first;
+        PAIR pred = predstk.top();
+        if (pr.second) {
+            if (pred.second) {
+                pred.first->left = R(n);
+            } else {
+                pred.first->right = R(n);
+            }
+        } else {
+            if (pred.second) {
+                pred.first->left = L(n);
+            } else {
+                pred.first->right = L(n);
+            }
+        }
+        predstk.pop();
+        stk.pop();
+    }
+    PAIR pr = stk.top();                    //Работаем с вершиной
+    Node *n = pr.first;
+    if (pr.second) {
+        setRoot(R(n));
+    } else {
+        setRoot(L(n));
+    }
+    stk.pop();
+    return true;
+}
+
+//Правый поворот
+template<class Data, class Key>
+typename Tree<Data, Key>::Node *Tree<Data, Key>::R(Node *p) {
+    Node *q = p->left;
+    if (!q) return p;
+    p->left = q->right;
+    q->right = p;
+    return q;
+}
+
+//Левый поворот
+template<class Data, class Key>
+typename Tree<Data, Key>::Node *Tree<Data, Key>::L(Node *q) {
+    Node *p = q->right;
+    if (!p) return q;
+    q->right = p->left;
+    p->left = q;
+    return p;
+}
+
 
 //--------------Методы класса Iterator----------
 template<class Data, class Key>
