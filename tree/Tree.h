@@ -48,7 +48,7 @@ public://методы интерфейса
     bool isEmpty();//проверка на пустоту
     Data &read(Key key);//доступ к данным по ключу
     bool add(Data data, Key key);//включение данных с заданным ключом
-    Node * addSupport(Node *root, Data data, Key key, bool &inserted);//включение данных с заданным ключом
+    Node *addSupport(Node *root, Data data, Key key, bool &inserted);//включение данных с заданным ключом
 
     bool remove(Key key);//удаление данных с заданным ключом
     void Lt_t_Rt(Node *node);//обход узлов дерева по схеме Lt->t->Rt
@@ -84,7 +84,11 @@ private:
 
     void copy(Node *t);
 
-    Node * getRoot();
+    Node *getRoot();
+
+    Node *removeSupport(Node *root, Key key, bool &deleted);
+
+    Node *del(Node *rightNode, Node *root);
 };
 
 //--------------Методы класса Tree-----------
@@ -135,7 +139,8 @@ Data &Tree<Data, Key>::read(Key key) {
     //ToDo read(Key key)
 }
 
-template<class Data, class Key> //Вставка по ключу
+template<class Data, class Key>
+//Вставка по ключу
 bool Tree<Data, Key>::add(Data data, Key key) {
     operations = 0;
     bool isInserted = false;
@@ -143,12 +148,13 @@ bool Tree<Data, Key>::add(Data data, Key key) {
     return isInserted;
 }
 
-template<class Data, class Key> //Вставка по ключу
-typename Tree<Data, Key>::Node* Tree<Data, Key>::addSupport(Node *rootNode, Data data, Key key, bool &inserted) {
+template<class Data, class Key>
+//Вставка по ключу
+typename Tree<Data, Key>::Node *Tree<Data, Key>::addSupport(Node *rootNode, Data data, Key key, bool &inserted) {
     operations = 0;
-    if(rootNode == nullptr){
+    if (rootNode == nullptr) {
         inserted = true;
-        if (getRoot() == nullptr){
+        if (getRoot() == nullptr) {
             setRoot(new Node(data, key));
             return getRoot();
         }
@@ -156,40 +162,94 @@ typename Tree<Data, Key>::Node* Tree<Data, Key>::addSupport(Node *rootNode, Data
         return rootNode;
     }
 
-    if (key == rootNode->k){
+    if (key == rootNode->k) {
         inserted = false;
         return rootNode;
     }
-    if (key < rootNode->k){
-        rootNode->left = addSupport(rootNode->left,  data, key, inserted);
+    if (key < rootNode->k) {
+        rootNode->left = addSupport(rootNode->left, data, key, inserted);
     } else {
-        rootNode->right = addSupport(rootNode->right, data,key, inserted);
+        rootNode->right = addSupport(rootNode->right, data, key, inserted);
     }
     return rootNode;
 }
 
-template<class Data, class Key> //Удаление по ключу
+template<class Data, class Key>
+//Удаление по ключу
 bool Tree<Data, Key>::remove(Key key) {
-    Node *t = root;
-    Node *pred = NULL;
-    Node *t0 = NULL;
-    Node *x = NULL;
-
-    operations = 1;
-    //ToDo remove(Key key)
+    bool deleted = false;
+    removeSupport(getRoot(), key, deleted);
+    return deleted;
 }
 
-template<class Data, class Key> // Обход дерева Lt_t_Rt
+template<class Data, class Key>
+//Удаление по ключу
+typename Tree<Data, Key>::Node *Tree<Data, Key>::removeSupport(Node *rootNode, Key key, bool &deleted) {
+    if (rootNode == nullptr) {
+        deleted = false;
+        return rootNode;
+    }
+    if (key < rootNode->k) {
+        rootNode->left = removeSupport(rootNode->left, key, deleted);
+        return rootNode;
+    }
+
+    if (key > rootNode->k) {
+        rootNode->right = removeSupport(rootNode->right, key, deleted);
+        return rootNode;
+    }
+
+
+    deleted = true;
+
+    if (rootNode->left == nullptr and rootNode->right == nullptr) {
+        rootNode = nullptr;
+        return nullptr;
+    }
+
+    if (rootNode->left == nullptr) {
+        Node *buffer = rootNode->right;
+        rootNode = nullptr;
+        return buffer;
+    }
+
+    if (rootNode->right == nullptr) {
+        Node *buffer = rootNode->left;
+        rootNode = nullptr;
+        return buffer;
+    }
+
+    rootNode->right = del(rootNode->right, rootNode);
+}
+
+template<class Data, class Key>
+typename Tree<Data, Key>::Node *Tree<Data, Key>::del(Node *rightNode, Node *root) {
+
+    if (rightNode->left != nullptr) {
+        rightNode->left = del(rightNode->left, root);
+        return rightNode;
+    }
+    root->k = rightNode->k;
+    root->t = rightNode->t;
+    Node *buffer = rightNode->right;
+    rightNode = nullptr;
+    return buffer;
+}
+
+
+template<class Data, class Key>
+// Обход дерева Lt_t_Rt
 void Tree<Data, Key>::Lt_t_Rt(Node *node) {
     if (node == nullptr) return;
 
     Lt_t_Rt(node->left);
-    cout<<node->t<<endl;
+    cout << node->t << endl;
     Lt_t_Rt(node->right);
 }
 
 
-template<class Data, class Key> // Используется для вывода структуры дерева
+template<class Data, class Key>
+// Используется для вывода структуры дерева
 void Tree<Data, Key>::levelCounter(Tree<Data, Key>::Node *t, int level, int &sum) {
     if (t == NULL) return;
     levelCounter(t->left, level + 1, sum);
@@ -197,13 +257,15 @@ void Tree<Data, Key>::levelCounter(Tree<Data, Key>::Node *t, int level, int &sum
     if (t->left == NULL || t->right == NULL) sum += level;
 }
 
-template<class Data, class Key> // Вывод на экран структуры дерева
+template<class Data, class Key>
+// Вывод на экран структуры дерева
 void Tree<Data, Key>::print() {
     if (root == NULL) return;
     show(root, 0);
 }
 
-template<class Data, class Key> // Вывод на экран структуры дерева
+template<class Data, class Key>
+// Вывод на экран структуры дерева
 void Tree<Data, Key>::show(Node *t, int level) {
     if (t == NULL) return;
     show(t->right, level + 1);
@@ -241,7 +303,8 @@ typename Tree<Data, Key>::Node *Tree<Data, Key>::left_parent(Tree<Data, Key>::No
 
 }
 
-template<class Data, class Key> // Переписать рекурсивно
+template<class Data, class Key>
+// Переписать рекурсивно
 typename Tree<Data, Key>::Node *Tree<Data, Key>::tree_predecessor(Tree<Data, Key>::Node *x) {
     if (x == NULL) return NULL;
     if (x->left != NULL) {
@@ -253,7 +316,8 @@ typename Tree<Data, Key>::Node *Tree<Data, Key>::tree_predecessor(Tree<Data, Key
     } else return right_parent(root, x);
 }
 
-template<class Data, class Key> // Переписать рекурсивно
+template<class Data, class Key>
+// Переписать рекурсивно
 typename Tree<Data, Key>::Node *Tree<Data, Key>::right_parent(Tree<Data, Key>::Node *r, Tree<Data, Key>::Node *x) {
     if (r == NULL) return NULL;
     if (x->k > r->k) {
@@ -264,7 +328,7 @@ typename Tree<Data, Key>::Node *Tree<Data, Key>::right_parent(Tree<Data, Key>::N
 }
 
 template<class Data, class Key>
-typename Tree<Data, Key>::Node* Tree<Data, Key>::getRoot() {
+typename Tree<Data, Key>::Node *Tree<Data, Key>::getRoot() {
     return root;
 }
 
