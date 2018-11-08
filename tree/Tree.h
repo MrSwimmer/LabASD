@@ -49,7 +49,11 @@ public://методы интерфейса
     int getSize();//опрос размера дерева
     void clear();//очистка дерева
     bool isEmpty();//проверка на пустоту
-    Data &read(Key key);//доступ к данным по ключу
+    Data &search(Key key);//доступ к данным по ключу
+
+
+
+
     bool add(Data data, Key key);//включение данных с заданным ключом
     Node *addSupport(Node *root, Data data, Key key, bool &inserted);//включение данных с заданным ключом
 
@@ -100,6 +104,8 @@ private:
     Node *L(Node *rootNode);
 
     Node *R(Node *rootNode);
+
+    Data &searchSupport(Node *rootNode, Key key);
 };
 
 //--------------Методы класса Tree-----------
@@ -144,11 +150,37 @@ template<class Data, class Key>
 bool Tree<Data, Key>::isEmpty() { return (root == NULL); }
 
 
+
 template<class Data, class Key>
-// Чтение значения по ключу
-Data &Tree<Data, Key>::read(Key key) {
-    //ToDo read(Key key)
+// Поиск
+Data &Tree<Data, Key>::search(Key key) {
+    if (getRoot() == nullptr) throw EMPTY_TREE;
+    return searchSupport(getRoot(), key);
 }
+
+
+template<class Data, class Key>
+// Поиск элемента
+Data &Tree<Data, Key>::searchSupport(Node *rootNode, Key key) {
+    if (rootNode == nullptr) {
+        throw KEY_DOES_NOT_EXIST;
+    }
+
+    if (key == rootNode->k) {
+        return rootNode->t;
+    }
+
+    if (key < rootNode->k) {
+        return searchSupport(rootNode->left, key);
+    } else {
+        return searchSupport(rootNode->right, key);
+    }
+}
+
+
+
+
+
 
 template<class Data, class Key>
 //Вставка по ключу
