@@ -58,7 +58,7 @@ public://методы интерфейса
     Node *addSupport(Node *root, Data data, Key key, bool &inserted);//включение данных с заданным ключом
 
     bool remove(Key key);//удаление данных с заданным ключом
-    void Lt_t_Rt(Node *node);//обход узлов дерева по схеме Lt->t->Rt
+    void Lt_t_Rt();//обход узлов дерева по схеме Lt->t->Rt
 
     void print();//вывод структуры дерева на экран
     int getOperations();//число просмотренных операций узлов дерева
@@ -106,6 +106,9 @@ private:
     Node *R(Node *rootNode);
 
     Data &searchSupport(Node *rootNode, Key key);
+
+
+    void Lt_t_Rt(Node *node); //обход узлов дерева по схеме Lt->t->Rt
 };
 
 //--------------Методы класса Tree-----------
@@ -282,6 +285,14 @@ typename Tree<Data, Key>::Node *Tree<Data, Key>::del(Node *rightNode, Node *root
 
 template<class Data, class Key>
 // Обход дерева Lt_t_Rt
+void Tree<Data, Key>::Lt_t_Rt() {
+    Lt_t_Rt(getRoot());
+}
+
+
+
+template<class Data, class Key>
+// Обход дерева Lt_t_Rt
 void Tree<Data, Key>::Lt_t_Rt(Node *node) {
     if (node == nullptr) return;
 
@@ -328,8 +339,9 @@ typename Tree<Data, Key>::Node *Tree<Data, Key>::tree_successor(Tree<Data, Key>:
     if (x == NULL) return NULL;
     if (x->right != NULL) {
         Node *tmp = x->right;
-        while (tmp->left != NULL) {
+        if (tmp->left != NULL) {
             tmp = tmp->left;
+            tree_successor(tmp);
         }
         return tmp;
     } else return left_parent(root, x);
@@ -352,8 +364,9 @@ typename Tree<Data, Key>::Node *Tree<Data, Key>::tree_predecessor(Tree<Data, Key
     if (x == NULL) return NULL;
     if (x->left != NULL) {
         Node *tmp = x->left;
-        while (tmp->right != NULL) {
+        if (tmp->right != NULL) {
             tmp = tmp->right;
+            tree_successor(tmp);
         }
         return tmp;
     } else return right_parent(root, x);
