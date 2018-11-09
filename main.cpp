@@ -15,7 +15,7 @@ void showMenu() {
     cout << "6. Add value by key" << endl;
     cout << "7. Delete value by key" << endl;
     cout << "8. Walk" << endl;
-    cout << "9. External path length" << endl;
+    cout << "9. Insert in root" << endl;
     cout << "10. Tree size" << endl;
     cout << "11. Iterator to first key position" << endl;
     cout << "12. Iterator to last key position" << endl;
@@ -23,7 +23,6 @@ void showMenu() {
     cout << "14. Show value at iterator's position" << endl;
     cout << "15. Next key" << endl;
     cout << "16. Prev key" << endl;
-    cout << "17. Test" << endl;
     cout << "0. Exit" << endl;
 }
 
@@ -68,7 +67,7 @@ int main() {
                     int k;
                     cin >> k;
                     cout << endl;
-                    cout << tree.search(k) << endl;
+                    cout << tree.get(k) << endl;
                     break;
                 }
 
@@ -78,7 +77,7 @@ int main() {
                     cin >> k;
                     cout << endl;
                     cout << "Insert new value: ";
-                    cin >> tree.search(k);
+                    cin >> tree.get(k);
                     cout << endl;
                     break;
                 }
@@ -110,6 +109,7 @@ int main() {
                 }
 
                 case 9: {
+                    //ToDo Реализовать вставку в корень
                     break;
                 }
 

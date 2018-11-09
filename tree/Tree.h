@@ -14,16 +14,13 @@ using namespace std;
 template<class Data, class Key>
 class Tree {
     class Node {
-
     public:
-        Data t;
-        Key k;
+        Data data;
+        Key key;
         Node *left;
         Node *right;
 
-        //Node();
         Node(Data x, Key y);
-        //~Node();
     };
 
     friend class Tree;
@@ -33,6 +30,7 @@ public:
     private:
         Tree *tree;
         Node *cur;
+
     public:
         Iterator(Tree<Data, Key> &tree);//конструктор
         bool first();//установка на первый узел в дереве с минимальным ключом
@@ -41,61 +39,57 @@ public:
         Data &operator*();//доступ по чтению и записи к данным текущего узла в дереве
         bool operator++(int);//переход к следующему по значению ключа узлу в дереве
         bool operator--(int);//переход к предыдущему по значению ключа узлу в дереве
+
+    private:
+        Node *tree_successor(Node *x);
+
+        Node *left_parent(Node *r, Node *x);
+
+        Node *tree_predecessor(Node *x);
+
+        Node *right_parent(Node *r, Node *x);
     };
+
 
     friend class Iterator;
 
 public://методы интерфейса
-    int getSize();//опрос размера дерева
-    void clear();//очистка дерева
-    bool isEmpty();//проверка на пустоту
-    Data &search(Key key);//доступ к данным по ключу
-
-
-
-
-    bool add(Data data, Key key);//включение данных с заданным ключом
-    Node *addSupport(Node *root, Data data, Key key, bool &inserted);//включение данных с заданным ключом
-
-    bool remove(Key key);//удаление данных с заданным ключом
-    void Lt_t_Rt();//обход узлов дерева по схеме Lt->t->Rt
-
-    void print();//вывод структуры дерева на экран
-    int getOperations();//число просмотренных операций узлов дерева
-
-    bool root_insert(Data data, Key key);
 
     Tree();//конструктор по умолчанию
-    Tree(Tree<Data, Key> &ttree);//конструктор копирования
+    Tree(Tree<Data, Key> &tree);//конструктор копирования
     ~Tree();//деструктор
 
+    long long getOperations(); //число просмотренных операций узлов дерева
+    int getSize(); //опрос размера дерева
+    void clear(); //очистка дерева
+    bool isEmpty(); //проверка на пустоту
+    Data &get(Key key); //доступ к данным по ключу
+    bool add(Data data, Key key); //включение данных с заданным ключом
+    bool remove(Key key); //удаление данных с заданным ключом
+    void Lt_t_Rt(); //обход узлов дерева по схеме Lt->data->Rt
+    bool root_insert(Data data, Key key); //Вставка в корень
+    void print(); //вывод структуры дерева на экран
+
 private:
-    Node *root;
-public:
+    Node *root; //указатель на корень
+
+    int length; //длина дерева
+
+    long long operations; //число просмотров
+
+    Node *getRoot();
+
     void setRoot(Node *root);
 
-    int length;//длина дерева
-    int operations;//число просмотров
 
-private:
-//указатель на корень
-
-
+    Node *addSupport(Node *root, Data data, Key key, bool &inserted);//включение данных с заданным ключом
     //вспомогательные методы
     void show(Node *t, int level);//вспомогательный метод распечатки
+
     void levelCounter(Node *t, int level, int &sum);
-
-    Node *tree_successor(Node *x);
-
-    Node *left_parent(Node *r, Node *x);
-
-    Node *tree_predecessor(Node *x);
-
-    Node *right_parent(Node *r, Node *x);
 
     void copy(Node *t);
 
-    Node *getRoot();
 
     Node *removeSupport(Node *root, Key key, bool &deleted);
 
@@ -107,8 +101,9 @@ private:
 
     Data &searchSupport(Node *rootNode, Key key);
 
+    void Lt_t_Rt(Node *node); //обход узлов дерева по схеме Lt->data->Rt
 
-    void Lt_t_Rt(Node *node); //обход узлов дерева по схеме Lt->t->Rt
+    void DelAll(Node *t);
 };
 
 //--------------Методы класса Tree-----------
@@ -119,16 +114,16 @@ Tree<Data, Key>::Tree() { //По умолчанию
 }
 
 template<class Data, class Key>
-Tree<Data, Key>::Tree(Tree<Data, Key> &ttree) { //Конструктор копирования
+Tree<Data, Key>::Tree(Tree<Data, Key> &tree) { //Конструктор копирования
     root == NULL;
     length = 0;
-    copy(ttree.root);
+    copy(tree.root);
 }
 
 template<class Data, class Key>
 void Tree<Data, Key>::copy(Tree<Data, Key>::Node *t) { //Копирование дерева
     if (t == NULL) return;
-    add(t->t, t->k);//добавляем узел в дерево
+    add(t->data, t->key);//добавляем узел в дерево
     copy(t->left);//делаем то же самое для его сыновей
     copy(t->right);
 }
@@ -145,18 +140,32 @@ template<class Data, class Key>
 
 //Очистка дерева
 void Tree<Data, Key>::clear() {
+    if (length == 0) return;
+    if (getRoot()) {
+        DelAll(getRoot());
+    }
+    setRoot(NULL);
+    length = 0;
+    operations = 0;
     //ToDo clear()
 }
+
+template<class Data, class Key>
+void Tree<Data, Key>::DelAll(Node *t) {
+    if (t->left) DelAll(t->left);                //Ничего не сделает если ссылки пусты
+    if (t->right) DelAll(t->right);
+    delete t;
+}
+
 
 template<class Data, class Key>
 // Проверка дерева на пустоту
 bool Tree<Data, Key>::isEmpty() { return (root == NULL); }
 
 
-
 template<class Data, class Key>
 // Поиск
-Data &Tree<Data, Key>::search(Key key) {
+Data &Tree<Data, Key>::get(Key key) {
     if (getRoot() == nullptr) throw EMPTY_TREE;
     return searchSupport(getRoot(), key);
 }
@@ -169,20 +178,16 @@ Data &Tree<Data, Key>::searchSupport(Node *rootNode, Key key) {
         throw KEY_DOES_NOT_EXIST;
     }
 
-    if (key == rootNode->k) {
-        return rootNode->t;
+    if (key == rootNode->key) {
+        return rootNode->data;
     }
 
-    if (key < rootNode->k) {
+    if (key < rootNode->key) {
         return searchSupport(rootNode->left, key);
     } else {
         return searchSupport(rootNode->right, key);
     }
 }
-
-
-
-
 
 
 template<class Data, class Key>
@@ -200,6 +205,7 @@ typename Tree<Data, Key>::Node *Tree<Data, Key>::addSupport(Node *rootNode, Data
     operations = 0;
     if (rootNode == nullptr) {
         inserted = true;
+        length++;
         if (getRoot() == nullptr) {
             setRoot(new Node(data, key));
             return getRoot();
@@ -208,11 +214,11 @@ typename Tree<Data, Key>::Node *Tree<Data, Key>::addSupport(Node *rootNode, Data
         return rootNode;
     }
 
-    if (key == rootNode->k) {
+    if (key == rootNode->key) {
         inserted = false;
         return rootNode;
     }
-    if (key < rootNode->k) {
+    if (key < rootNode->key) {
         rootNode->left = addSupport(rootNode->left, data, key, inserted);
     } else {
         rootNode->right = addSupport(rootNode->right, data, key, inserted);
@@ -235,18 +241,20 @@ typename Tree<Data, Key>::Node *Tree<Data, Key>::removeSupport(Node *rootNode, K
         deleted = false;
         return rootNode;
     }
-    if (key < rootNode->k) {
+    operations++;
+    if (key < rootNode->key) {
         rootNode->left = removeSupport(rootNode->left, key, deleted);
         return rootNode;
     }
 
-    if (key > rootNode->k) {
+    if (key > rootNode->key) {
         rootNode->right = removeSupport(rootNode->right, key, deleted);
         return rootNode;
     }
 
 
     deleted = true;
+    length--;
 
     if (rootNode->left == nullptr and rootNode->right == nullptr) {
         rootNode = nullptr;
@@ -275,8 +283,8 @@ typename Tree<Data, Key>::Node *Tree<Data, Key>::del(Node *rightNode, Node *root
         rightNode->left = del(rightNode->left, root);
         return rightNode;
     }
-    root->k = rightNode->k;
-    root->t = rightNode->t;
+    root->key = rightNode->key;
+    root->data = rightNode->data;
     Node *buffer = rightNode->right;
     rightNode = nullptr;
     return buffer;
@@ -290,14 +298,13 @@ void Tree<Data, Key>::Lt_t_Rt() {
 }
 
 
-
 template<class Data, class Key>
 // Обход дерева Lt_t_Rt
 void Tree<Data, Key>::Lt_t_Rt(Node *node) {
     if (node == nullptr) return;
 
     Lt_t_Rt(node->left);
-    cout << node->t << endl;
+    cout << node->key << ":" << node->data << endl;
     Lt_t_Rt(node->right);
 }
 
@@ -326,16 +333,16 @@ void Tree<Data, Key>::show(Node *t, int level) {
     for (int i = 0; i <= 3 * level; i++) {
         cout << " ";
     }
-    cout << t->k << endl;
+    cout << t->key << endl;
     show(t->left, level + 1);
 }
 
 template<class Data, class Key>
-int Tree<Data, Key>::getOperations() { return operations; }
+long long Tree<Data, Key>::getOperations() { return operations; }
 
 //вспомогательные методы
 template<class Data, class Key>
-typename Tree<Data, Key>::Node *Tree<Data, Key>::tree_successor(Tree<Data, Key>::Node *x) {
+typename Tree<Data, Key>::Node *Tree<Data, Key>::Iterator::tree_successor(Tree<Data, Key>::Node *x) {
     if (x == NULL) return NULL;
     if (x->right != NULL) {
         Node *tmp = x->right;
@@ -344,13 +351,14 @@ typename Tree<Data, Key>::Node *Tree<Data, Key>::tree_successor(Tree<Data, Key>:
             tree_successor(tmp);
         }
         return tmp;
-    } else return left_parent(root, x);
+    } else return left_parent(tree->getRoot(), x);
 }
 
 template<class Data, class Key>
-typename Tree<Data, Key>::Node *Tree<Data, Key>::left_parent(Tree<Data, Key>::Node *r, Tree<Data, Key>::Node *x) {
+typename Tree<Data, Key>::Node *
+Tree<Data, Key>::Iterator::left_parent(Tree<Data, Key>::Node *r, Tree<Data, Key>::Node *x) {
     if (r == NULL) return NULL;
-    if (x->k < r->k) {
+    if (x->key < r->key) {
         Node *n = left_parent(r->left, x);
         if (n != NULL) return n;
         else return r;
@@ -359,8 +367,7 @@ typename Tree<Data, Key>::Node *Tree<Data, Key>::left_parent(Tree<Data, Key>::No
 }
 
 template<class Data, class Key>
-// Переписать рекурсивно
-typename Tree<Data, Key>::Node *Tree<Data, Key>::tree_predecessor(Tree<Data, Key>::Node *x) {
+typename Tree<Data, Key>::Node *Tree<Data, Key>::Iterator::tree_predecessor(Tree<Data, Key>::Node *x) {
     if (x == NULL) return NULL;
     if (x->left != NULL) {
         Node *tmp = x->left;
@@ -369,14 +376,14 @@ typename Tree<Data, Key>::Node *Tree<Data, Key>::tree_predecessor(Tree<Data, Key
             tree_successor(tmp);
         }
         return tmp;
-    } else return right_parent(root, x);
+    } else return right_parent(tree->getRoot(), x);
 }
 
 template<class Data, class Key>
-// Переписать рекурсивно
-typename Tree<Data, Key>::Node *Tree<Data, Key>::right_parent(Tree<Data, Key>::Node *r, Tree<Data, Key>::Node *x) {
+typename Tree<Data, Key>::Node *
+Tree<Data, Key>::Iterator::right_parent(Tree<Data, Key>::Node *r, Tree<Data, Key>::Node *x) {
     if (r == NULL) return NULL;
-    if (x->k > r->k) {
+    if (x->key > r->key) {
         Node *n = right_parent(r->right, x);
         if (n != NULL) return n;
         else return r;
@@ -403,19 +410,21 @@ bool Tree<Data, Key>::root_insert(Data data, Key key) {
         setRoot(new Node(data, key));
         return true;
     }
+
+
     Node *pred;
     stack<PAIR > stk;        //stack< std::pair< Node*, bool > > stk
     stack<PAIR > predstk;    //Стек с предыдущими
     while (t != NULL) {
         pred = t;
-        if (key == t->k) {        //Если нельзя вставить
+        if (key == t->key) {        //Если нельзя вставить
             while (!stk.empty()) {    //Чистим стек
                 stk.pop();
                 predstk.pop();
             }
             return false;            //Выходим
         }
-        if (key < t->k) {            //Двигаемся налево
+        if (key < t->key) {            //Двигаемся налево
             stk.push(PAIR(t, 1));
             predstk.push(PAIR(t, 1));
             t = t->left;
@@ -425,7 +434,7 @@ bool Tree<Data, Key>::root_insert(Data data, Key key) {
             t = t->right;
         }
     }
-    if (key < pred->k) pred->left = new Node(data, key);
+    if (key < pred->key) pred->left = new Node(data, key);
     else pred->right = new Node(data, key);
     //Раскрутка стеков
     predstk.pop();
@@ -517,14 +526,14 @@ bool Tree<Data, Key>::Iterator::last() {
 template<class Data, class Key>
 Data &Tree<Data, Key>::Iterator::operator*() {
     if (status()) {
-        return cur->t;
+        return cur->data;
     } else throw ITERATOR_END;
 }
 
 template<class Data, class Key>
 bool Tree<Data, Key>::Iterator::operator++(int) {
     if (status()) {
-        cur = tree->tree_successor(cur);
+        cur = tree_successor(cur);
         return true;
     } else return false;
 }
@@ -532,32 +541,15 @@ bool Tree<Data, Key>::Iterator::operator++(int) {
 template<class Data, class Key>
 bool Tree<Data, Key>::Iterator::operator--(int) {
     if (status()) {
-        cur = tree->tree_predecessor(cur);
+        cur = tree_predecessor(cur);
         return true;
     } else return false;
 }
-//---------------Методы класса Node-------------
-/*
-template <class Data, class Key>
-Tree<Data,Key>::Node::Node() {
-    left=NULL;
-    right=NULL;
-}*/
 
 template<class Data, class Key>
 Tree<Data, Key>::Node::Node(Data x, Key y) {
-    t = x;
-    k = y;
+    data = x;
+    key = y;
     left = NULL;
     right = NULL;
 }
-
-
-/*
-template <class Data, class Key>
-Tree<Data,Key>::Node::~Node() {
-    delete t;
-    delete k;
-    left=NULL;
-    right=NULL;
-}*/
