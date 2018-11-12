@@ -104,6 +104,11 @@ private:
     void Lt_t_Rt(Node *node); //обход узлов дерева по схеме Lt->data->Rt
 
     void DelAll(Node *t);
+
+
+    Node *root_insert_rec(Node *rootNode, Data data, Key key, bool &inserted);
+
+
 };
 
 //--------------Методы класса Tree-----------
@@ -147,7 +152,6 @@ void Tree<Data, Key>::clear() {
     setRoot(NULL);
     length = 0;
     operations = 0;
-    //ToDo clear()
 }
 
 template<class Data, class Key>
@@ -195,7 +199,7 @@ template<class Data, class Key>
 bool Tree<Data, Key>::add(Data data, Key key) {
     operations = 0;
     bool isInserted = false;
-    addSupport(getRoot(), data, key, isInserted);
+    addSupport(root, data, key, isInserted);
     return isInserted;
 }
 
@@ -206,10 +210,6 @@ typename Tree<Data, Key>::Node *Tree<Data, Key>::addSupport(Node *rootNode, Data
     if (rootNode == nullptr) {
         inserted = true;
         length++;
-        if (getRoot() == nullptr) {
-            setRoot(new Node(data, key));
-            return getRoot();
-        }
         rootNode = new Node(data, key);
         return rootNode;
     }
@@ -401,93 +401,169 @@ void Tree<Data, Key>::setRoot(Tree::Node *root) {
 }
 
 
-//Вставка в корень
+////Вставка в корень
+//template<class Data, class Key>
+//bool Tree<Data, Key>::root_insert(Data data, Key key) {
+//    Node *t = getRoot();
+//    if (t == NULL) {
+//        length++;
+//        setRoot(new Node(data, key));
+//        return true;
+//    }
+//
+//    Node *pred;
+//    stack<PAIR > stk;        //stack< std::pair< Node*, bool > > stk
+//    stack<PAIR > predstk;    //Стек с предыдущими
+//    while (t != NULL) {
+//        pred = t;
+//        if (key == t->key) {        //Если нельзя вставить
+//            while (!stk.empty()) {    //Чистим стек
+//                stk.pop();
+//                predstk.pop();
+//            }
+//            return false;            //Выходим
+//        }
+//        if (key < t->key) {            //Двигаемся налево
+//            stk.push(PAIR(t, 1));
+//            predstk.push(PAIR(t, 1));
+//            t = t->left;
+//        } else {                        //Двигаемся направо
+//            stk.push(PAIR(t, 0));
+//            predstk.push(PAIR(t, 0));
+//            t = t->right;
+//        }
+//    }
+//    if (key < pred->key) pred->left = new Node(data, key);
+//    else pred->right = new Node(data, key);
+//    //Раскрутка стеков
+//    predstk.pop();
+//    while (!predstk.empty()) {            //Доходим до вершины дерева
+//
+//        PAIR pr = stk.top();
+//        Node *n = pr.first;
+//        PAIR pred = predstk.top();
+//        if (pr.second) {
+//            if (pred.second) {
+//                pred.first->left = R(n);
+//            } else {
+//                pred.first->right = R(n);
+//            }
+//        } else {
+//            if (pred.second) {
+//                pred.first->left = L(n);
+//            } else {
+//                pred.first->right = L(n);
+//            }
+//        }
+//        predstk.pop();
+//        stk.pop();
+//    }
+//    PAIR pr = stk.top();                    //Работаем с вершиной
+//    Node *n = pr.first;
+//    if (pr.second) {
+//        setRoot(R(n));
+//    } else {
+//        setRoot(L(n));
+//    }
+//    stk.pop();
+//    return true;
+//}
+//
+////Правый поворот
+//template<class Data, class Key>
+//typename Tree<Data, Key>::Node *Tree<Data, Key>::R(Node *p) {
+//    Node *q = p->left;
+//    if (!q) return p;
+//    p->left = q->right;
+//    q->right = p;
+//    return q;
+//}
+//
+////Левый поворот
+//template<class Data, class Key>
+//typename Tree<Data, Key>::Node *Tree<Data, Key>::L(Node *q) {
+//    Node *p = q->right;
+//    if (!p) return q;
+//    q->right = p->left;
+//    p->left = q;
+//    return p;
+//}
+//------Рекурсивный вариант------///
+
 template<class Data, class Key>
 bool Tree<Data, Key>::root_insert(Data data, Key key) {
-    Node *t = getRoot();
-    if (t == NULL) {
-        length++;
-        setRoot(new Node(data, key));
+    bool inserted = false;
+    if (root == NULL) {
+        root = new Node(data, key);
         return true;
     }
+    root = root_insert_rec(root, data, key, inserted);
+    return inserted;
+}
 
 
-    Node *pred;
-    stack<PAIR > stk;        //stack< std::pair< Node*, bool > > stk
-    stack<PAIR > predstk;    //Стек с предыдущими
-    while (t != NULL) {
-        pred = t;
-        if (key == t->key) {        //Если нельзя вставить
-            while (!stk.empty()) {    //Чистим стек
-                stk.pop();
-                predstk.pop();
-            }
-            return false;            //Выходим
-        }
-        if (key < t->key) {            //Двигаемся налево
-            stk.push(PAIR(t, 1));
-            predstk.push(PAIR(t, 1));
-            t = t->left;
-        } else {                        //Двигаемся направо
-            stk.push(PAIR(t, 0));
-            predstk.push(PAIR(t, 0));
-            t = t->right;
-        }
+template<class Data, class Key>
+typename Tree<Data, Key>::Node *Tree<Data, Key>::root_insert_rec(Node *rootNode, Data data, Key key, bool &inserted) {
+    if (rootNode == NULL) {
+        length++;
+        inserted = true;
+        rootNode = new Node(data, key);
+        return rootNode;
     }
-    if (key < pred->key) pred->left = new Node(data, key);
-    else pred->right = new Node(data, key);
-    //Раскрутка стеков
-    predstk.pop();
-    while (!predstk.empty()) {            //Доходим до вершины дерева
 
-        PAIR pr = stk.top();
-        Node *n = pr.first;
-        PAIR pred = predstk.top();
-        if (pr.second) {
-            if (pred.second) {
-                pred.first->left = R(n);
-            } else {
-                pred.first->right = R(n);
-            }
+    if (key == rootNode->key) {
+        inserted = false;
+        return rootNode;
+    }
+
+    if (key < rootNode->key) {
+        rootNode->left = root_insert_rec(rootNode->left, data, key, inserted);
+        if (inserted) {
+            return R(rootNode);
         } else {
-            if (pred.second) {
-                pred.first->left = L(n);
-            } else {
-                pred.first->right = L(n);
-            }
+            return rootNode;
         }
-        predstk.pop();
-        stk.pop();
-    }
-    PAIR pr = stk.top();                    //Работаем с вершиной
-    Node *n = pr.first;
-    if (pr.second) {
-        setRoot(R(n));
+
     } else {
-        setRoot(L(n));
+        rootNode->right = root_insert_rec(rootNode->right, data, key, inserted);
+        if (inserted) {
+            rootNode = L(rootNode);
+            return rootNode;
+        } else {
+            return rootNode;
+        }
+
     }
-    stk.pop();
-    return true;
 }
 
 //Правый поворот
 template<class Data, class Key>
-typename Tree<Data, Key>::Node *Tree<Data, Key>::R(Node *p) {
-    Node *q = p->left;
-    if (!q) return p;
-    p->left = q->right;
-    q->right = p;
-    return q;
+typename Tree<Data, Key>::Node *Tree<Data, Key>::R(Node *rootNode) {
+
+    if (rootNode == NULL) {
+        return NULL;
+    } else {
+        Node *x = rootNode->left;
+        rootNode->left = x->right;
+        x->right = rootNode;
+        rootNode = x;
+        return x;
+    }
 }
+
 
 //Левый поворот
 template<class Data, class Key>
-typename Tree<Data, Key>::Node *Tree<Data, Key>::L(Node *q) {
-    Node *p = q->right;
-    if (!p) return q;
-    q->right = p->left;
-    p->left = q;
-    return p;
+typename Tree<Data, Key>::Node *Tree<Data, Key>::L(Node *rootNode) {
+    if (rootNode == NULL) {
+        return NULL;
+    } else {
+        Node *x = rootNode->right;
+        rootNode->right = x->left;
+        x->left = rootNode;
+        rootNode = x;
+        return x;
+    }
 }
 
 

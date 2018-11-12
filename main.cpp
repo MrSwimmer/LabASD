@@ -109,6 +109,14 @@ int main() {
                 }
 
                 case 9: {
+                    cout << "Insert key: ";
+                    int k;
+                    cin >> k;
+                    cout << endl;
+                    cout << "Insert new value: ";
+                    int val;
+                    cin >> val;
+                    cout << tree.root_insert(val, k) << endl;
                     //ToDo Реализовать вставку в корень
                     break;
                 }
