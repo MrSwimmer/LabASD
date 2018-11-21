@@ -114,7 +114,7 @@ private:
 //--------------Методы класса Tree-----------
 template<class Data, class Key>
 Tree<Data, Key>::Tree() { //По умолчанию
-    root = NULL;
+    root = nullptr;
     length = 0;
 }
 
@@ -164,13 +164,14 @@ void Tree<Data, Key>::DelAll(Node *t) {
 
 template<class Data, class Key>
 // Проверка дерева на пустоту
-bool Tree<Data, Key>::isEmpty() { return (root == NULL); }
+bool Tree<Data, Key>::isEmpty() { return (root == nullptr); }
 
 
 template<class Data, class Key>
 // Поиск
 Data &Tree<Data, Key>::get(Key key) {
     if (getRoot() == nullptr) throw EMPTY_TREE;
+    operations++;
     return searchSupport(getRoot(), key);
 }
 
@@ -187,8 +188,10 @@ Data &Tree<Data, Key>::searchSupport(Node *rootNode, Key key) {
     }
 
     if (key < rootNode->key) {
+        operations++;
         return searchSupport(rootNode->left, key);
     } else {
+        operations++;
         return searchSupport(rootNode->right, key);
     }
 }
@@ -199,6 +202,10 @@ template<class Data, class Key>
 bool Tree<Data, Key>::add(Data data, Key key) {
     operations = 0;
     bool isInserted = false;
+    if (root == NULL) {
+        root = new Node(data, key);
+        return true;
+    }
     addSupport(root, data, key, isInserted);
     return isInserted;
 }
@@ -206,14 +213,14 @@ bool Tree<Data, Key>::add(Data data, Key key) {
 template<class Data, class Key>
 //Вставка по ключу
 typename Tree<Data, Key>::Node *Tree<Data, Key>::addSupport(Node *rootNode, Data data, Key key, bool &inserted) {
-    operations = 0;
     if (rootNode == nullptr) {
         inserted = true;
         length++;
-        rootNode = new Node(data, key);
+        operations++;
+        rootNode = (new Node(data, key));
         return rootNode;
     }
-
+    operations++;
     if (key == rootNode->key) {
         inserted = false;
         return rootNode;
@@ -278,7 +285,7 @@ typename Tree<Data, Key>::Node *Tree<Data, Key>::removeSupport(Node *rootNode, K
 
 template<class Data, class Key>
 typename Tree<Data, Key>::Node *Tree<Data, Key>::del(Node *rightNode, Node *root) {
-
+    operations++;
     if (rightNode->left != nullptr) {
         rightNode->left = del(rightNode->left, root);
         return rightNode;
@@ -338,7 +345,12 @@ void Tree<Data, Key>::show(Node *t, int level) {
 }
 
 template<class Data, class Key>
-long long Tree<Data, Key>::getOperations() { return operations; }
+long long Tree<Data, Key>::getOperations() {
+
+    long long cp = operations;
+    operations = 0;
+    return cp;
+}
 
 //вспомогательные методы
 template<class Data, class Key>
@@ -400,100 +412,11 @@ void Tree<Data, Key>::setRoot(Tree::Node *root) {
     Tree::root = root;
 }
 
-
-////Вставка в корень
-//template<class Data, class Key>
-//bool Tree<Data, Key>::root_insert(Data data, Key key) {
-//    Node *t = getRoot();
-//    if (t == NULL) {
-//        length++;
-//        setRoot(new Node(data, key));
-//        return true;
-//    }
-//
-//    Node *pred;
-//    stack<PAIR > stk;        //stack< std::pair< Node*, bool > > stk
-//    stack<PAIR > predstk;    //Стек с предыдущими
-//    while (t != NULL) {
-//        pred = t;
-//        if (key == t->key) {        //Если нельзя вставить
-//            while (!stk.empty()) {    //Чистим стек
-//                stk.pop();
-//                predstk.pop();
-//            }
-//            return false;            //Выходим
-//        }
-//        if (key < t->key) {            //Двигаемся налево
-//            stk.push(PAIR(t, 1));
-//            predstk.push(PAIR(t, 1));
-//            t = t->left;
-//        } else {                        //Двигаемся направо
-//            stk.push(PAIR(t, 0));
-//            predstk.push(PAIR(t, 0));
-//            t = t->right;
-//        }
-//    }
-//    if (key < pred->key) pred->left = new Node(data, key);
-//    else pred->right = new Node(data, key);
-//    //Раскрутка стеков
-//    predstk.pop();
-//    while (!predstk.empty()) {            //Доходим до вершины дерева
-//
-//        PAIR pr = stk.top();
-//        Node *n = pr.first;
-//        PAIR pred = predstk.top();
-//        if (pr.second) {
-//            if (pred.second) {
-//                pred.first->left = R(n);
-//            } else {
-//                pred.first->right = R(n);
-//            }
-//        } else {
-//            if (pred.second) {
-//                pred.first->left = L(n);
-//            } else {
-//                pred.first->right = L(n);
-//            }
-//        }
-//        predstk.pop();
-//        stk.pop();
-//    }
-//    PAIR pr = stk.top();                    //Работаем с вершиной
-//    Node *n = pr.first;
-//    if (pr.second) {
-//        setRoot(R(n));
-//    } else {
-//        setRoot(L(n));
-//    }
-//    stk.pop();
-//    return true;
-//}
-//
-////Правый поворот
-//template<class Data, class Key>
-//typename Tree<Data, Key>::Node *Tree<Data, Key>::R(Node *p) {
-//    Node *q = p->left;
-//    if (!q) return p;
-//    p->left = q->right;
-//    q->right = p;
-//    return q;
-//}
-//
-////Левый поворот
-//template<class Data, class Key>
-//typename Tree<Data, Key>::Node *Tree<Data, Key>::L(Node *q) {
-//    Node *p = q->right;
-//    if (!p) return q;
-//    q->right = p->left;
-//    p->left = q;
-//    return p;
-//}
-//------Рекурсивный вариант------///
-
 template<class Data, class Key>
 bool Tree<Data, Key>::root_insert(Data data, Key key) {
     bool inserted = false;
     if (root == NULL) {
+        operations++;
         root = new Node(data, key);
         return true;
     }
@@ -504,6 +427,7 @@ bool Tree<Data, Key>::root_insert(Data data, Key key) {
 
 template<class Data, class Key>
 typename Tree<Data, Key>::Node *Tree<Data, Key>::root_insert_rec(Node *rootNode, Data data, Key key, bool &inserted) {
+    operations++;
     if (rootNode == NULL) {
         length++;
         inserted = true;
@@ -539,7 +463,7 @@ typename Tree<Data, Key>::Node *Tree<Data, Key>::root_insert_rec(Node *rootNode,
 //Правый поворот
 template<class Data, class Key>
 typename Tree<Data, Key>::Node *Tree<Data, Key>::R(Node *rootNode) {
-
+    operations++;
     if (rootNode == NULL) {
         return NULL;
     } else {
@@ -555,6 +479,7 @@ typename Tree<Data, Key>::Node *Tree<Data, Key>::R(Node *rootNode) {
 //Левый поворот
 template<class Data, class Key>
 typename Tree<Data, Key>::Node *Tree<Data, Key>::L(Node *rootNode) {
+    operations++;
     if (rootNode == NULL) {
         return NULL;
     } else {
